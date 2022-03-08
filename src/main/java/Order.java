@@ -1,4 +1,6 @@
-public class Order {
+import org.sql2o.Connection;
+
+public class Order extends Customer implements DatabaseManagement {
 
     private String name;
     private String type;
@@ -7,6 +9,7 @@ public class Order {
     public final static String PRODUCT_TYPE="Home-product";
 
     public Order(String name, String type) {
+        super(name, type);
         this.name = name;
         this.type = type;
     }
@@ -25,5 +28,23 @@ public class Order {
 
     public void setType(String type) {
         this.type = type;
+    }
+    @Override
+    public void save() {
+        if (this.name.equals("") || this.type.equals("")){
+            throw new IllegalArgumentException("Fields cannot be Empty");
+        }
+        try (Connection con=DB.sql2o.open()){
+
+            String sql ="INSERT INTO orders (name,type) VALUES (:name,:type)";
+
+            this.id=(int) con.createQuery(sql,true)
+                    .addParameter("name",this.name)
+                    .addParameter("type",this.type)
+
+                    .executeUpdate()
+                    .getKey();
+        }
+
     }
 }
